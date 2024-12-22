@@ -2,8 +2,8 @@ import React from 'react';
 import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
 import {AuthProvider} from "@context/index.tsx";
 import ProtectedRoute from "@router/protected";
-import Login from "@components/login";
-import Dashboard from "@components/dashboard";
+import Login from "@pages/login/index.tsx";
+import Dashboard from "@pages/dashboard/index.tsx";
 
 
 const AppRouter: React.FC = () => {
