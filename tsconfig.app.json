@@ -15,6 +15,17 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    "paths": {
+      "@router/*": [
+        "./src/router/*"
+      ],
+      "@context/*": [
+        "./src/context/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
+      ],
+    },
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
