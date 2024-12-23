@@ -1,14 +1,19 @@
 import {useRef} from "react";
 import {LoginFormRef} from "@pages/login/index.type.ts";
 import LoginForm from "@components/form/login";
+import {useAuth} from "@context/auth";
+import {useNavigate} from "react-router-dom";
 
 
 const Login = ()=>{
 
     const formRef = useRef<LoginFormRef>(null);
+    const navigate = useNavigate(); // Initialize navigate
+    const { login } = useAuth();
 
     const handleLoginSuccess = (token: string) => {
-        alert(`Login successful! Token: ${token}`);
+        login(token);
+        navigate("/dashboard");
     };
 
     return (
