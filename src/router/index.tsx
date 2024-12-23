@@ -5,6 +5,8 @@ import ProtectedRoute from "@router/protected";
 import Login from "@pages/login/index.tsx";
 import Dashboard from "@pages/dashboard/index.tsx";
 import {NetworkServiceProvider} from "@context/http";
+import UserDetail from "@pages/user";
+import EditUser from "@pages/user/index.patch.tsx";
 
 
 const AppRouter: React.FC = () => {
@@ -16,6 +18,8 @@ const AppRouter: React.FC = () => {
                         <Route path="/login" element={<Login />} />
                         <Route path="/" element={<ProtectedRoute />}>
                             <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/users/:userId" element={<UserDetail/>} />
+                            <Route path="/users/:userId/edit" element={<EditUser/>} />
                         </Route>
                         <Route path="*" element={<Navigate to="/login" replace />} />
                     </Routes>
