@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useLayoutEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useHttpService } from "@context/http";
-import {User} from "@pages/dashboard/index.type.ts";
+import { User } from "@pages/dashboard/index.type.ts";
 import DeleteModal from "@components/modal/deleteUserConfirmation";
 
-
 const UserDetail: React.FC = () => {
-    const { userId } = useParams<{ userId: string }>(); // Get the userId from the URL
+    const { userId } = useParams<{ userId: string }>();
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -14,7 +13,7 @@ const UserDetail: React.FC = () => {
     const httpService = useHttpService();
     const navigate = useNavigate();
 
-    const fetchUser = async () => {
+    const fetchUser = useCallback(async () => {
         setLoading(true);
         try {
             const response = await httpService.get<{ data: User }>(`/users/${userId}`);
@@ -26,13 +25,13 @@ const UserDetail: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [httpService, userId]);
 
-    const updateUser = () => {
+    const updateUser = useCallback(() => {
         navigate(`/users/${userId}/edit`);
-    };
+    }, [navigate, userId]);
 
-    const deleteUser = async () => {
+    const deleteUser = useCallback(async () => {
         try {
             await httpService.delete(`/users/${userId}`);
             alert("User deleted successfully");
@@ -41,12 +40,22 @@ const UserDetail: React.FC = () => {
             console.error("Error deleting user:", err);
             alert("Failed to delete user");
         }
-    };
-
+    }, [httpService, navigate, userId]);
 
     useEffect(() => {
         fetchUser();
-    }, [userId]);
+    }, [fetchUser]);
+
+    useLayoutEffect(() => {
+        if (user) {
+            console.log(`Rendered user: ${user.first_name} ${user.last_name}`);
+        }
+    }, [user]);
+
+    const fullName = useMemo(() => {
+        if (!user) return "";
+        return `${user.first_name} ${user.last_name}`;
+    }, [user]);
 
     if (loading) {
         return <div className="p-6">Loading user details...</div>;
@@ -65,7 +74,7 @@ const UserDetail: React.FC = () => {
             <div className="mb-6">
                 <button
                     className="flex items-center gap-2 text-blue-500 hover:text-blue-700"
-                    onClick={() => navigate(-1)} // Navigate to the previous page
+                    onClick={() => navigate(-1)}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -88,10 +97,10 @@ const UserDetail: React.FC = () => {
             <div className="border p-4 rounded shadow">
                 <img
                     src={user.avatar}
-                    alt={`${user.first_name} ${user.last_name}`}
+                    alt={fullName}
                     className="w-32 h-32 rounded-full mb-4"
                 />
-                <h2 className="text-lg font-semibold">{`${user.first_name} ${user.last_name}`}</h2>
+                <h2 className="text-lg font-semibold">{fullName}</h2>
                 <p className="text-gray-600">{user.email}</p>
                 <div className="mt-4 flex gap-4">
                     <button
