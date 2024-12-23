@@ -1,21 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback, useLayoutEffect, useTransition } from "react";
 import { useNavigate } from "react-router-dom";
 import { useHttpService } from "@context/http";
-import {User} from "@pages/dashboard/index.type.ts";
-import {useAuth} from "@context/auth";
+import { useAuth } from "@context/auth";
 import LogoutModal from "@components/modal/logoutConfirmation";
-
+import { User } from "@pages/dashboard/index.type.ts";
 
 const Dashboard = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+    const [isPending, startTransition] = useTransition(); // Manage non-urgent updates
     const httpService = useHttpService();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
-    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-    const fetchUsers = async (pageNumber: number) => {
+    const fetchUsers = useCallback(async (pageNumber: number) => {
         try {
             const response = await httpService.get<{ data: User[]; total_pages: number }>(
                 `/users?page=${pageNumber}`
@@ -25,26 +25,44 @@ const Dashboard = () => {
         } catch (error) {
             console.error("Error fetching users:", error);
         }
-    };
+    }, [httpService]);
+
+    const pageNumbers = useMemo(() => {
+        return Array.from({ length: 3 }, (_, i) => i + page - 1).filter(
+            (p) => p > 0 && p <= totalPages
+        );
+    }, [page, totalPages]);
+
+    const handleUserClick = useCallback(
+        (userId: number) => {
+            navigate(`/users/${userId}`);
+        },
+        [navigate]
+    );
+
+    const handlePageChange = useCallback(
+        (newPage: number) => {
+            if (newPage > 0 && newPage <= totalPages) {
+                startTransition(() => {
+                    setPage(newPage);
+                });
+            }
+        },
+        [totalPages]
+    );
+
+    const handleLogout = useCallback(() => {
+        logout();
+        navigate("/login");
+    }, [logout, navigate]);
 
     useEffect(() => {
         fetchUsers(page);
-    }, [page]);
+    }, [fetchUsers, page]);
 
-    const handleUserClick = (userId: number) => {
-        navigate(`/users/${userId}`);
-    };
-
-    const handlePageChange = (newPage: number) => {
-        if (newPage > 0 && newPage <= totalPages) {
-            setPage(newPage);
-        }
-    };
-
-    const handleLogout = () => {
-        logout(); // Clear token and logout user
-        navigate("/login");
-    };
+    useLayoutEffect(() => {
+        console.log("Dashboard layout rendered!");
+    }, [users, page]);
 
     return (
         <div className="p-6">
@@ -111,19 +129,17 @@ const Dashboard = () => {
                     Previous
                 </button>
 
-                {Array.from({length: 3}, (_, i) => i + page - 1)
-                    .filter((p) => p > 0 && p <= totalPages) // Ensure pages are within valid range
-                    .map((p) => (
-                        <button
-                            key={p}
-                            className={`px-4 py-2 rounded mx-1 ${
-                                p === page ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"
-                            }`}
-                            onClick={() => handlePageChange(p)}
-                        >
-                            {p}
-                        </button>
-                    ))}
+                {pageNumbers.map((p) => (
+                    <button
+                        key={p}
+                        className={`px-4 py-2 rounded mx-1 ${
+                            p === page ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"
+                        }`}
+                        onClick={() => handlePageChange(p)}
+                    >
+                        {p}
+                    </button>
+                ))}
 
                 <button
                     className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 ml-2"
@@ -133,6 +149,8 @@ const Dashboard = () => {
                     Next
                 </button>
             </div>
+
+            {isPending && <div className="text-center mt-4">Loading...</div>}
         </div>
     );
 };
