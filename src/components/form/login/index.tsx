@@ -1,4 +1,4 @@
-import {forwardRef, useImperativeHandle, useLayoutEffect, useState, useTransition} from "react";
+import {FormEvent, forwardRef, useImperativeHandle, useLayoutEffect, useState, useTransition} from "react";
 import {LoginFormProps, LoginFormRef} from "@pages/login/index.type.ts";
 import {useHttpService} from "@context/http";
 
@@ -38,7 +38,7 @@ const LoginForm = forwardRef<LoginFormRef, LoginFormProps>(({ onLoginSuccess }, 
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
 
