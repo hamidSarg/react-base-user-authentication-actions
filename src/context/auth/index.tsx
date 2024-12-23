@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import LocalStorageService from "../storage";
+import LocalStorageService from "../../storage";
 import {AuthContextType} from "./index.type.ts";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
