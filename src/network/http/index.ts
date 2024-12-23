@@ -24,9 +24,20 @@ class HttpService {
         try {
             const response = await fetch(url, options);
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `Request failed with status ${response.status}`);
+                // Attempt to parse error response
+                try {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Request failed with status ${response.status}`);
+                } catch {
+                    throw new Error(`Request failed with status ${response.status}`);
+                }
             }
+
+            // Handle empty response (e.g., 204 No Content)
+            if (response.status === 204) {
+                return {} as T; // Return an empty object if no content
+            }
+
             return (await response.json()) as T;
         } catch (error) {
             console.error(`Error during ${method} request to ${url}:`, error);
